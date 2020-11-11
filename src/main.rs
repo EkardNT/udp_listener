@@ -40,7 +40,7 @@ fn main() {
         }
     };
 
-    // Print out bind addr for each socket.
+    // Print out final bind addr for each socket.
     for socket in &sockets {
         match socket.local_addr() {
             Ok(local_addr) => eprintln!("Bound to {}", local_addr),
