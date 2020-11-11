@@ -1,9 +1,12 @@
 # udp_listener
 
-A very simple program which listens on a UDP socket address for incoming packets and
+A very simple program which listens on a UDP socket for incoming packets and
 writes the received data to standard output. On startup, the program prints the actual
 local bind address to standard error. This is useful for when you don't specify a port to
 bind to, so that you can see the OS-chosen port.
+
+You may bind to more than one socket address. In that case, data is written to standard
+out from all sockets in the order in which it was received.
 
 ## Usage
 
@@ -13,7 +16,7 @@ bind to, so that you can see the OS-chosen port.
 out unprocessed. If absent, then the received packet data will first be lossily parsed into
 UTF-8 text using the U+FFFD REPLACEMENT CHARACTER (�), and only then be written out.
 
-**[<SOCKET_ADDR>]\***: Zero or more socket addresses which will be bound to. A socket address
+**`[<SOCKET_ADDR>]*`**: Zero or more socket addresses which will be bound to. A socket address
 consists of both an IP address and a port number. Both IPv4 and IPv6 are supported. Use port
 0 to have the OS assign a random free port.
 
