@@ -60,7 +60,6 @@ fn main() {
     // If there's only one, then we can be a bit more efficient by pre-locking the stdout,
     // otherwise we need to use the shared version.
     match sockets.len() {
-        0 => show_help(),
         1 => {
             let stdout = std::io::stdout();
             let mut stdout = stdout.lock();
@@ -114,8 +113,8 @@ fn receive_and_forward(binary: bool, input: UdpSocket, mut output: impl std::io:
 }
 
 fn show_help() {
-    println!("udp_listener [-b|--binary] [<SOCKET_ADDR>]*");
-    println!("[Example] Bind to any IPv4 interface on port 12345: udp_listener 0.0.0.0:12345");
-    println!("[Example] Bind to any IPv6 address on a random port, in binary mode: udp_listener -b '[::]:0'");
-    println!("[Example] Bind to both IPv4 and IPv6 addresses, each with the same port number: udp_listener '0.0.0.0:12345' '[::]:12345'");
+    eprintln!("udp_listener [-b|--binary] [<SOCKET_ADDR>]*");
+    eprintln!("[Example] Bind to any IPv4 interface on port 12345: udp_listener 0.0.0.0:12345");
+    eprintln!("[Example] Bind to any IPv6 address on a random port, in binary mode: udp_listener -b '[::]:0'");
+    eprintln!("[Example] Bind to both IPv4 and IPv6 addresses, each with the same port number: udp_listener '0.0.0.0:12345' '[::]:12345'");
 }
