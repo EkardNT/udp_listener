@@ -1,6 +1,13 @@
 use std::net::{SocketAddr, UdpSocket};
 use std::thread::{spawn, JoinHandle};
 
+const FAIL_SOCKET_INIT: i32 = 1;
+const FAIL_LOCAL_LOOKUP: i32 = 2;
+const FAIL_THREAD_PANIC: i32 = 3;
+const FAIL_RECV_FROM: i32 = 4;
+const FAIL_BINARY_WRITE: i32 = 5;
+const FAIL_TEXT_WRITE: i32 = 6;
+
 fn main() {
     let mut args: Vec<String> = std::env::args().skip(1).collect();
 
@@ -42,7 +49,7 @@ fn main() {
         Ok(sockets) => sockets,
         Err(err) => {
             eprintln!("{}", err);
-            return;
+            std::process::exit(FAIL_SOCKET_INIT);
         }
     };
 
@@ -52,7 +59,7 @@ fn main() {
             Ok(local_addr) => eprintln!("Bound to {}", local_addr),
             Err(err) => {
                 eprintln!("Local addr lookup failed: {:#?}", err);
-                return;
+                std::process::exit(FAIL_LOCAL_LOOKUP);
             }
         }
     }
@@ -78,6 +85,7 @@ fn main() {
             for handle in join_handles {
                 if let Err(err) = handle.join() {
                     eprintln!("Thread panicked: {:#?}", err);
+                    std::process::exit(FAIL_THREAD_PANIC);
                 }
             }
         }
@@ -91,7 +99,7 @@ fn receive_and_forward(binary: bool, input: UdpSocket, mut output: impl std::io:
             Ok(data) => data,
             Err(err) => {
                 eprintln!("Receive failed: {:#?}", err);
-                return;
+                std::process::exit(FAIL_RECV_FROM);
             }
         };
 
@@ -100,13 +108,13 @@ fn receive_and_forward(binary: bool, input: UdpSocket, mut output: impl std::io:
         if binary {
             if let Err(err) = output.write_all(&buf[..byte_count]) {
                 eprintln!("Binary write to stdout failed: {:#?}", err);
-                return;
+                std::process::exit(FAIL_BINARY_WRITE);
             }
         } else {
             let text = String::from_utf8_lossy(&buf[..byte_count]);
             if let Err(err) = output.write_all(text.as_bytes()) {
                 eprintln!("Text write to stdout failed: {:#?}", err);
-                return;
+                std::process::exit(FAIL_TEXT_WRITE);
             }
         }
     }
