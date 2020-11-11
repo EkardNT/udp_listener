@@ -3,6 +3,27 @@ use std::thread::{spawn, JoinHandle};
 
 fn main() {
     let mut args: Vec<String> = std::env::args().skip(1).collect();
+
+    // **Example 1**: Bind to any IPv4 interface on the specific port 12345, in text mode.
+
+    // ```udp_listener '0.0.0.0:12345'```
+
+    // **Example 2**: Bind to any IPv6 address on a random port, in binary mode.
+
+    // ```udp_listener -b '[::]:0'```
+
+    // **Example 3**: Bind to both an IPv4 and IPv6 address, each with the same port number, in text mode.
+
+    // ```udp_listener '0.0.0.0:12345' '[::]:12345'```
+
+    if args.iter().any(|arg| arg == "help" || arg == "-h" || arg == "--help") {
+        println!("udp_listener [-b|--binary] [<SOCKET_ADDR>]*");
+        println!("[Example] Bind to any IPv4 interface on port 12345: udp_listener 0.0.0.0:12345");
+        println!("[Example] Bind to any IPv6 address on a random port, in binary mode: udp_listener -b '[::]:0'");
+        println!("[Example] Bind to both IPv4 and IPv6 addresses, each with the same port number: udp_listener '0.0.0.0:12345' '[::]:12345'");
+        return;
+    }
+
     let binary = args
         .iter()
         .position(|arg| arg == "-b" || arg == "--binary")
