@@ -1,22 +1,38 @@
+use std::net::{SocketAddr, UdpSocket};
 use std::thread::{spawn, JoinHandle};
-use std::net::{AddrParseError, SocketAddr, UdpSocket};
 
 fn main() {
     let mut args: Vec<String> = std::env::args().skip(1).collect();
-    let binary = args.iter().position(|arg| arg == "-b" || arg == "--binary")
+    let binary = args
+        .iter()
+        .position(|arg| arg == "-b" || arg == "--binary")
         .map(|index| args.remove(index))
         .is_some();
 
     // All remaining args represent socket addresses. First, resolve them all into
     // structured addresses.
-    let mut sockets: Vec<UdpSocket> = match args.into_iter()
-        .map(|text_addr| text_addr.parse::<SocketAddr>()
-            .map_err(|err| format!("Failed to parse argument {} as socket address: {:#?}", text_addr, err))
-            .and_then(|socket_addr| UdpSocket::bind(socket_addr)
-                .map_err(|err| format!("Failed to bind to UDP address {:?}: {:#?}", socket_addr, err))
-            )
-        )
-        .collect() {
+    let mut sockets: Vec<UdpSocket> = match args
+        .into_iter()
+        .map(|text_addr| {
+            text_addr
+                .parse::<SocketAddr>()
+                .map_err(|err| {
+                    format!(
+                        "Failed to parse argument {} as socket address: {:#?}",
+                        text_addr, err
+                    )
+                })
+                .and_then(|socket_addr| {
+                    UdpSocket::bind(socket_addr).map_err(|err| {
+                        format!(
+                            "Failed to bind to UDP address {:?}: {:#?}",
+                            socket_addr, err
+                        )
+                    })
+                })
+        })
+        .collect()
+    {
         Ok(sockets) => sockets,
         Err(err) => {
             eprintln!("{}", err);
@@ -37,12 +53,13 @@ fn main() {
 
     // If there's only one, then we can be a bit more efficient by pre-locking the stdout,
     // otherwise we need to use the shared version.
-    if (sockets.len() == 1) {
+    if sockets.len() == 1 {
         let stdout = std::io::stdout();
         let mut stdout = stdout.lock();
         receive_and_forward(binary, sockets.remove(0), &mut stdout);
     } else {
-        let join_handles: Vec<JoinHandle<()>> = sockets.into_iter()
+        let join_handles: Vec<JoinHandle<()>> = sockets
+            .into_iter()
             .map(|socket| {
                 spawn(move || {
                     let stdout = std::io::stdout();
